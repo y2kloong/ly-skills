@@ -1,0 +1,14 @@
+{
+  "name": "tb-commit-summary",
+  "description": "根据用户提供的 commit ID，分析提交内容并输出三部分总结：修复方案、业务影响分析、转测试建议",
+  "version": "1.0.0",
+  "author": {
+    "name": "y2kloong",
+    "url": "https://gitee.com/y2kloong"
+  },
+  "repository": "https://gitee.com/y2kloong/ly-skills.git",
+  "main": {
+    "type": "skills",
+    "skills": ["skills/tb-commit-summary"]
+  }
+}
