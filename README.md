@@ -1,6 +1,6 @@
 # ly-skills
 
-个人 Claude Code 技能集，通过 **Plugin Marketplace** 方式分发。一个仓库同时充当 marketplace 和插件本体，安装/更新一条命令搞定。
+个人 Claude Code 技能集，通过 **Plugin Marketplace** 方式分发（一个仓库同时充当 marketplace 和插件本体）。技能本体采用跨工具通用的 Agent Skills（SKILL.md）格式，也支持 Codex、DeepSeek Harness 等工具手动安装，见[其他工具安装](#其他工具安装codex--deepseek-harness)。
 
 ## 包含的插件
 
@@ -37,6 +37,41 @@
 ```
 
 > 本地自测通过后再 push，避免反复改 commit。
+
+## 其他工具安装（Codex / DeepSeek Harness）
+
+Claude Code 之外的工具**不支持 `/plugin marketplace` 命令**，需手动放置技能目录。
+仓库内技能文件位于 `plugins/<插件名>/skills/<技能名>/SKILL.md`，对应三个技能：
+`branch-merge-check`、`tb-commit-summary`、`create-workflow-form`。
+
+### Codex（OpenAI Codex CLI）
+
+将技能目录复制到 `~/.codex/skills/`（个人全局）或项目目录 `.codex/skills/`（仅该项目），重启 Codex 后自动加载。
+
+```powershell
+git clone https://gitee.com/y2kloong/ly-skills.git
+cd ly-skills
+New-Item -ItemType Directory -Force "$HOME\.codex\skills"
+Copy-Item -Recurse .\plugins\*\skills\* "$HOME\.codex\skills\"
+```
+
+### DeepSeek Harness（DSH）
+
+将技能目录复制到 `~/.dsh/skills/`（DSH_HOME 下的 skills 目录），新会话启动后自动加载。
+
+```powershell
+git clone https://gitee.com/y2kloong/ly-skills.git
+cd ly-skills
+New-Item -ItemType Directory -Force "$HOME\.dsh\skills"
+Copy-Item -Recurse .\plugins\*\skills\* "$HOME\.dsh\skills\"
+```
+
+> 推荐使用符号链接（Junction）代替复制，仓库更新后无需手动同步：
+> `New-Item -ItemType Junction -Path "$HOME\.dsh\skills\<技能名>" -Target <仓库路径>\plugins\<插件名>\skills\<技能名>`
+
+### 更新方式（Codex / DSH）
+
+`git pull` 拉取最新内容后重新执行复制（符号链接方式则自动跟随）。
 
 ## 技能使用方式
 
