@@ -6,9 +6,10 @@
 
 | 插件 | 说明 |
 |---|---|
-| `branch-merge-check` | 分析两个分支间公共组代码差异，生成 cherry-pick 命令，用于同步公共组代码 |
-| `tb-commit-summary` | 根据 commit ID 输出修复方案 / 业务影响分析 / 转测试建议 |
-| `create-workflow-form` | 生成新的工作流审批详情页面代码：业务页面、工作流适配层和 container 注册 |
+| `ly-branch-merge-check` | 分析两个分支间公共组代码差异，生成 cherry-pick 命令，用于同步公共组代码 |
+| `ly-tb-commit-summary` | 根据 commit ID 输出修复方案 / 业务影响分析 / 转测试建议 |
+| `ly-create-workflow-form` | 生成新的工作流审批详情页面代码：业务页面、工作流适配层和 container 注册 |
+| `ly-code-confirm` | 根据组件/文件路径列表查询 git history，生成《代码确认管控》Excel 表格 |
 
 ## 安装
 
@@ -18,9 +19,10 @@
 
 ```
 /plugin marketplace add https://gitee.com/y2kloong/ly-skills.git
-/plugin install branch-merge-check@ly-skills
-/plugin install tb-commit-summary@ly-skills
-/plugin install create-workflow-form@ly-skills
+/plugin install ly-branch-merge-check@ly-skills
+/plugin install ly-tb-commit-summary@ly-skills
+/plugin install ly-create-workflow-form@ly-skills
+/plugin install ly-code-confirm@ly-skills
 ```
 
 更新（作者发布新版本后）：
@@ -33,7 +35,7 @@
 
 ```
 /plugin marketplace add D:\path\to\ly-skills
-/plugin install branch-merge-check@ly-skills
+/plugin install ly-branch-merge-check@ly-skills
 ```
 
 > 本地自测通过后再 push，避免反复改 commit。
@@ -41,8 +43,8 @@
 ## 其他工具安装（Codex / DeepSeek Harness）
 
 Claude Code 之外的工具**不支持 `/plugin marketplace` 命令**，需手动放置技能目录。
-仓库内技能文件位于 `plugins/<插件名>/skills/<技能名>/SKILL.md`，对应三个技能：
-`branch-merge-check`、`tb-commit-summary`、`create-workflow-form`。
+仓库内技能文件位于 `plugins/<插件名>/skills/<技能名>/SKILL.md`，对应四个技能：
+`ly-branch-merge-check`、`ly-tb-commit-summary`、`ly-create-workflow-form`、`ly-code-confirm`。
 
 ### Codex（OpenAI Codex CLI）
 
@@ -75,9 +77,10 @@ Copy-Item -Recurse .\plugins\*\skills\* "$HOME\.dsh\skills\"
 
 ## 技能使用方式
 
-- `/branch-merge-check <分支名>` — 分析公共组代码差异并生成 cherry-pick 命令
-- `/tb-commit-summary <commit-id>` — 分析提交并输出三部分总结（支持多个 commit ID）
-- `create-workflow-form` — 生成新的工作流审批详情页面（业务页面 + 适配层 + container 注册）
+- `/ly-branch-merge-check <分支名>` — 分析公共组代码差异并生成 cherry-pick 命令
+- `/ly-tb-commit-summary <commit-id>` — 分析提交并输出三部分总结（支持多个 commit ID）
+- `ly-create-workflow-form` — 生成新的工作流审批详情页面（业务页面 + 适配层 + container 注册）
+- `/ly-code-confirm <路径列表>` — 查询 git history 生成《代码确认管控》Excel 表格
 
 ## 仓库结构
 

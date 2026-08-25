@@ -1,5 +1,5 @@
 ---
-name: create-workflow-form
+name: ly-create-workflow-form
 description: |
   生成新的工作流审批详情页面代码，包括业务页面、工作流适配层和 container 注册。
   仅当用户明确表示要“新建/创建/新增/生成/开发”一个工作流表单、审批详情页、审批页面、流程表单页面时使用。

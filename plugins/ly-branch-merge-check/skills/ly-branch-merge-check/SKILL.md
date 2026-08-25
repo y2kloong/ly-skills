@@ -1,10 +1,10 @@
 ---
-name: branch-merge-check
+name: ly-branch-merge-check
 description: >
-  仅通过 /branch-merge-check 指令手动调用。
+  仅通过 /ly-branch-merge-check 指令手动调用。
   分析两个分支之间的公共组代码差异，生成 cherry-pick 命令。
   用于从其他版本分支（如 dev_gtm_0715、dev_gtm_0725）同步公共组代码到当前分支的场景。
-  DO NOT auto-trigger on any user message content — only invoke when user explicitly types /branch-merge-check.
+  DO NOT auto-trigger on any user message content — only invoke when user explicitly types /ly-branch-merge-check.
 ---
 
 # 分支合并检查 - 公共组代码同步

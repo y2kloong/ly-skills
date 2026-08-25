@@ -1,9 +1,9 @@
 ---
-name: tb-commit-summary
+name: ly-tb-commit-summary
 description: >
-  仅通过 /tb-commit-summary 指令手动调用。
+  仅通过 /ly-tb-commit-summary 指令手动调用。
   根据用户提供的 commit ID，分析提交内容并输出三部分总结：修复方案、业务影响分析、转测试建议。
-  DO NOT auto-trigger on any user message content — only invoke when user explicitly types /tb-commit-summary.
+  DO NOT auto-trigger on any user message content — only invoke when user explicitly types /ly-tb-commit-summary.
 ---
 
 # Commit 分析总结
@@ -13,10 +13,10 @@ description: >
 仅通过指令调用：
 
 ```
-/tb-commit-summary <commit-id>
+/ly-tb-commit-summary <commit-id>
 ```
 
-例如：`/tb-commit-summary 1144cde1bc0119bc358f53d88b3d4f206d3a9e27`
+例如：`/ly-tb-commit-summary 1144cde1bc0119bc358f53d88b3d4f206d3a9e27`
 
 可以一次传入多个 commit ID（空格分隔），逐个分析。
 

@@ -6,19 +6,24 @@
   },
   "plugins": [
     {
-      "name": "branch-merge-check",
+      "name": "ly-branch-merge-check",
       "source": "https://gitee.com/y2kloong/ly-skills.git",
       "description": "分析两个分支之间的公共组代码差异，生成 cherry-pick 命令，用于从其他版本分支同步公共组代码"
     },
     {
-      "name": "tb-commit-summary",
+      "name": "ly-tb-commit-summary",
       "source": "https://gitee.com/y2kloong/ly-skills.git",
       "description": "根据 commit ID 输出三部分总结：修复方案、业务影响分析、转测试建议"
     },
     {
-      "name": "create-workflow-form",
+      "name": "ly-create-workflow-form",
       "source": "https://gitee.com/y2kloong/ly-skills.git",
       "description": "生成新的工作流审批详情页面代码：业务页面、工作流适配层和 container 注册"
+    },
+    {
+      "name": "ly-code-confirm",
+      "source": "https://gitee.com/y2kloong/ly-skills.git",
+      "description": "根据组件/文件路径列表查询 git history，生成《代码确认管控》Excel 表格（组件版本管控 / 需求编号确认）"
     }
   ]
 }

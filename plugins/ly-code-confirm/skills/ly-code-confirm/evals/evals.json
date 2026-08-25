@@ -1,0 +1,19 @@
+{
+  "skill_name": "ly-code-confirm",
+  "evals": [
+    {
+      "id": 1,
+      "name": "basic-paths",
+      "prompt": "用 /ly-code-confirm 生成代码确认管控表，路径如下（每行一条）：\nsrc/components/fastDesigner/fastForm.vue\nsrc/components/lowcode/LyBusicenGtm/GTM/Headquarters/CommodityManage/vehicleInformationManagement/mesConfig.vue\nsrc/views/bcapnext/lcs/libs/commonMixins.js\nsrc/views/Login/NormalLogin/index.vue",
+      "expected_output": "Excel 文件，4 行数据 + 表头。fastForm → NIPTV-148642/彭君；mesConfig → NIPTV-139289、NIPTV-139290/刘湖水；commonMixins → 兜底最新message/刘泽明；NormalLogin → NIPTV-157446/彭君。项目经理詹朝生，确认日期2026/08/25",
+      "files": []
+    },
+    {
+      "id": 2,
+      "name": "edge-paths",
+      "prompt": "用 /ly-code-confirm 生成代码确认管控表，包含以下路径：\nsrc/components/ElementSecondary/ElOption.vue\nsrc/views/does/not/exist.vue\nworkspace/views/demo.vue",
+      "expected_output": "Excel 文件，3 行数据 + 表头。ElOption → 兜底最新message「【框架升级】【715】 fastForm下拉框选项支持使用插槽自定义」/邓佩云；不存在路径 → 需求编号空、管控人空；demo.vue → NIPTV-152324/何怿铭。",
+      "files": []
+    }
+  ]
+}

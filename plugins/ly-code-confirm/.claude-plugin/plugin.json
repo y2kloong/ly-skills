@@ -1,0 +1,14 @@
+{
+  "name": "ly-code-confirm",
+  "description": "根据组件/文件路径列表查询 git history，生成《代码确认管控》Excel 表格（组件版本管控 / 需求编号确认）",
+  "version": "1.0.0",
+  "author": {
+    "name": "y2kloong",
+    "url": "https://gitee.com/y2kloong"
+  },
+  "repository": "https://gitee.com/y2kloong/ly-skills.git",
+  "main": {
+    "type": "skills",
+    "skills": ["skills/ly-code-confirm"]
+  }
+}

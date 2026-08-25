@@ -1,5 +1,5 @@
 {
-  "name": "create-workflow-form",
+  "name": "ly-create-workflow-form",
   "description": "低代码平台工作流表单生成技能：根据业务需求生成表单及容器变更说明（含公司内部流程信息）",
   "version": "1.0.0",
   "author": {
@@ -9,6 +9,6 @@
   "repository": "https://gitee.com/y2kloong/ly-skills.git",
   "main": {
     "type": "skills",
-    "skills": ["skills/create-workflow-form"]
+    "skills": ["skills/ly-create-workflow-form"]
   }
 }

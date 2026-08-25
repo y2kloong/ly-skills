@@ -1,5 +1,5 @@
 {
-  "name": "branch-merge-check",
+  "name": "ly-branch-merge-check",
   "description": "分析两个分支之间的公共组代码差异，生成 cherry-pick 命令，用于从其他版本分支同步公共组代码",
   "version": "1.0.0",
   "author": {
@@ -9,6 +9,6 @@
   "repository": "https://gitee.com/y2kloong/ly-skills.git",
   "main": {
     "type": "skills",
-    "skills": ["skills/branch-merge-check"]
+    "skills": ["skills/ly-branch-merge-check"]
   }
 }
