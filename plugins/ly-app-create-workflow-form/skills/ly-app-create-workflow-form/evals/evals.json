@@ -1,0 +1,23 @@
+{
+  "skill_name": "ly-app-create-workflow-form",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "帮我新建一个审批详情页面，formName 叫 storeInspectionAudit，属于 ChannelModule 模块，用于门店巡检审核。详情接口是 /gateway/channel/storeInspection/detail，提交接口是 /gateway/channel/storeInspection/submit。参考 GTMModule 的写法，用单文件直集成模式。",
+      "expected_output": "生成单个 src/modules/ChannelModule/workflow/storeInspectionAudit/index.vue（内含完整 6 个工作流钩子 + wfCompositionExapnd 解构 + defineExpose）+ container 注册修改；不得生成独立适配层",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "我需要在 OtdModule 下新建一个工作流表单叫 deliveryChangeApply，用于交付变更申请。表单比较简单，用直集成模式就行。详情接口 /gateway/otd/deliveryChange/detail，保存接口 /gateway/otd/deliveryChange/save",
+      "expected_output": "生成单个 src/modules/OtdModule/workflow/deliveryChangeApply/index.vue 包含所有逻辑 + container 注册修改，使用 wfCompositionExapnd 解构模式",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "新建一个审批页面",
+      "expected_output": "应该引导用户确认 formName、模块、功能、API 等信息后再生成代码",
+      "files": []
+    }
+  ]
+}

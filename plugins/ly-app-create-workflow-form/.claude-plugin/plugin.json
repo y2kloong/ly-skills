@@ -1,0 +1,14 @@
+{
+  "name": "ly-app-create-workflow-form",
+  "description": "低代码平台工作流表单生成技能：采用单文件直集成模式生成业务 workflow 页面代码及 container 注册修改（含公司内部流程信息）",
+  "version": "1.0.0",
+  "author": {
+    "name": "y2kloong",
+    "url": "https://gitee.com/y2kloong"
+  },
+  "repository": "https://gitee.com/y2kloong/ly-skills.git",
+  "main": {
+    "type": "skills",
+    "skills": ["skills/ly-app-create-workflow-form"]
+  }
+}

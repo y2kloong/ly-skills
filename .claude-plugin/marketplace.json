@@ -16,9 +16,9 @@
       "description": "根据 commit ID 输出三部分总结：修复方案、业务影响分析、转测试建议"
     },
     {
-      "name": "ly-create-workflow-form",
+      "name": "ly-app-create-workflow-form",
       "source": "https://gitee.com/y2kloong/ly-skills.git",
-      "description": "生成新的工作流审批详情页面代码：业务页面、工作流适配层和 container 注册"
+      "description": "生成新的工作流审批详情页面代码（单文件直集成模式）：业务 workflow 页面与 container 注册"
     },
     {
       "name": "ly-code-confirm",
