@@ -8,7 +8,7 @@
 |---|---|
 | `ly-branch-merge-check` | 分析两个分支间公共组代码差异，生成 cherry-pick 命令，用于同步公共组代码 |
 | `ly-tb-commit-summary` | 根据 commit ID 输出修复方案 / 业务影响分析 / 转测试建议 |
-| `ly-create-workflow-form` | 生成新的工作流审批详情页面代码：业务页面、工作流适配层和 container 注册 |
+| `ly-app-create-workflow-form` | 生成新的工作流审批详情页面代码（单文件直集成模式）：业务 workflow 页面和 container 注册 |
 | `ly-code-confirm` | 根据组件/文件路径列表查询 git history，生成《代码确认管控》Excel 表格 |
 
 ## 安装
@@ -21,7 +21,7 @@
 /plugin marketplace add https://gitee.com/y2kloong/ly-skills.git
 /plugin install ly-branch-merge-check@ly-skills
 /plugin install ly-tb-commit-summary@ly-skills
-/plugin install ly-create-workflow-form@ly-skills
+/plugin install ly-app-create-workflow-form@ly-skills
 /plugin install ly-code-confirm@ly-skills
 ```
 
@@ -44,7 +44,7 @@
 
 Claude Code 之外的工具**不支持 `/plugin marketplace` 命令**，需手动放置技能目录。
 仓库内技能文件位于 `plugins/<插件名>/skills/<技能名>/SKILL.md`，对应四个技能：
-`ly-branch-merge-check`、`ly-tb-commit-summary`、`ly-create-workflow-form`、`ly-code-confirm`。
+`ly-branch-merge-check`、`ly-tb-commit-summary`、`ly-app-create-workflow-form`、`ly-code-confirm`。
 
 ### Codex（OpenAI Codex CLI）
 
@@ -79,7 +79,7 @@ Copy-Item -Recurse .\plugins\*\skills\* "$HOME\.dsh\skills\"
 
 - `/ly-branch-merge-check <分支名>` — 分析公共组代码差异并生成 cherry-pick 命令
 - `/ly-tb-commit-summary <commit-id>` — 分析提交并输出三部分总结（支持多个 commit ID）
-- `ly-create-workflow-form` — 生成新的工作流审批详情页面（业务页面 + 适配层 + container 注册）
+- `ly-app-create-workflow-form` — 手动触发，生成新的工作流审批详情页面（业务 workflow 页面 + container 注册）
 - `/ly-code-confirm <路径列表>` — 查询 git history 生成《代码确认管控》Excel 表格
 
 ## 仓库结构
