@@ -11,10 +11,12 @@
  *                                                             显式指定输出目录（跨项目/无工程根目录时用）
  *
  * 输出位置解析顺序：
- *   1. --out-dir 参数（或环境变量 CODE_CONFIRM_OUT_DIR）
- *   2. 当前 git 仓库根目录（git rev-parse --show-toplevel）
- *   3. 从当前目录向上找最近的工程标记目录（package.json / pom.xml / go.mod / Cargo.toml / ...）
- *   4. 以上都没有 → 输出 "NO_PROJECT_ROOT"，退出码 2，由调用方（Claude）询问用户保存位置
+ *   1. --out-dir 参数（或环境变量 CODE_CONFIRM_OUT_DIR）——显式指定，优先级最高
+ *   2. 用户桌面目录（Windows 经 Known Folder 查询，兼容 OneDrive 重定向；其它平台 ~/Desktop）
+ *   3. 以上都没有 → 输出 "NO_PROJECT_ROOT"，退出码 2，由调用方（Claude）询问用户保存位置
+ *
+ * 注意：git log 的查询目录仍是当前 git 仓库根（detectProjectRoot），与输出目录相互独立——
+ *       表格默认落在桌面（不写入仓库内，避免污染工程目录）。
  *
  * 规则（与《代码确认管控》表格口径一致，均在下方 CONFIG 中可配置）：
  *   - 每个路径取前 N 条 git history（默认 3 条）
@@ -296,6 +298,35 @@ function detectProjectRoot() {
   }
 }
 
+// 桌面目录检测：Windows 优先用 Known Folder API（兼容 OneDrive / 目录重定向），
+// 失败则回退 USERPROFILE/OneDrive 组合；非 Windows 直接取 ~/Desktop。找不到返回 null。
+function detectDesktopDir() {
+  if (process.platform === 'win32') {
+    try {
+      const out = execSync(
+        'powershell -NoProfile -NonInteractive -Command "[Environment]::GetFolderPath(\'Desktop\')"',
+        { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }
+      ).trim();
+      if (out && fs.existsSync(out)) return out;
+    } catch (e) { /* powershell 不可用，继续走环境变量回退 */ }
+    const up = process.env.USERPROFILE;
+    if (up) {
+      const cands = [
+        path.join(up, 'Desktop'),
+        path.join(up, 'OneDrive', 'Desktop')
+      ];
+      for (const c of cands) if (fs.existsSync(c)) return c;
+    }
+    return null;
+  }
+  const home = process.env.HOME;
+  if (home) {
+    const d = path.join(home, 'Desktop');
+    if (fs.existsSync(d)) return d;
+  }
+  return null;
+}
+
 function normalizeAuthor(name) {
   return CONFIG.authorMap[name] || name;
 }
@@ -355,10 +386,11 @@ function main() {
   const projectRoot = detectProjectRoot();
   const gitCwd = projectRoot || process.cwd();
 
-  let outDir = outDirArg || process.env.CODE_CONFIRM_OUT_DIR || projectRoot;
+  // 输出目录解析：显式 --out-dir/env -> 桌面目录（默认）。git log 查询目录始终用 gitCwd，二者相互独立。
+  let outDir = outDirArg || process.env.CODE_CONFIRM_OUT_DIR || detectDesktopDir();
   if (!outDir) {
     console.error('NO_PROJECT_ROOT');
-    console.error('无法检测到当前项目根目录（非 git 仓库，也未找到 package.json/pom.xml 等工程标记）。');
+    console.error('无法自动确定输出位置（未检测到桌面目录，也未通过 --out-dir / CODE_CONFIRM_OUT_DIR 指定）。');
     console.error('请通过 --out-dir <目录> 指定输出位置。');
     process.exit(2);
   }

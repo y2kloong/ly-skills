@@ -62,12 +62,15 @@ node "C:\Users\lyhuliuhao\.claude\skills\ly-code-confirm\scripts\generate_code_c
 - 输出 `Total: <数量>, with empty history: <数量>` 和最终写入路径。
 
 **输出位置解析顺序**（脚本内自动完成）：
-1. `--out-dir <目录>` 参数（或环境变量 `CODE_CONFIRM_OUT_DIR`）——显式指定；
-2. 当前 git 仓库根目录（`git rev-parse --show-toplevel`）；
-3. 从当前目录向上找最近的工程标记目录（`package.json` / `pom.xml` / `go.mod` / `Cargo.toml` / `pyproject.toml` 等）；
-4. 以上都检测不到 → 脚本输出 `NO_PROJECT_ROOT` 并以退出码 2 结束。
+1. `--out-dir <目录>` 参数（或环境变量 `CODE_CONFIRM_OUT_DIR`）——显式指定，优先级最高；
+2. **用户桌面目录**（默认）：Windows 经 Known Folder 查询（兼容 OneDrive / 目录重定向），
+   查询失败时回退 `USERPROFILE\Desktop`、`USERPROFILE\OneDrive\Desktop`；其它平台取 `~/Desktop`；
+3. 以上都没有 → 脚本输出 `NO_PROJECT_ROOT` 并以退出码 2 结束。
 
-**如果脚本输出 `NO_PROJECT_ROOT`**（用户目录不是 git 仓库、也没有工程标记文件），**必须用 `AskUserQuestion` 询问用户要把 Excel 保存到哪里**，拿到目录后用 `--out-dir` 重跑：
+> git log 的查询目录与输出目录相互独立：脚本仍先在**当前 git 仓库根 / 最近的工程标记目录**里执行 `git log`，
+> 但表格文件默认写到**桌面**，不会写入仓库内污染工程目录。
+
+**如果脚本输出 `NO_PROJECT_ROOT`**（未检测到桌面目录，也未显式指定输出位置），**必须用 `AskUserQuestion` 询问用户要把 Excel 保存到哪里**，拿到目录后用 `--out-dir` 重跑：
 
 ```bash
 node "...\generate_code_confirm.cjs" --out-dir "<用户指定的目录>" < "<临时文件>"
@@ -86,7 +89,7 @@ node "...\generate_code_confirm.cjs" --out-dir "<用户指定的目录>" < "<临
 ### 第四步：汇报结果
 
 向用户报告：
-- 输出文件完整路径（以脚本输出的 `Written: <完整路径>` 为准，可能位于 git 根目录、工程标记目录或用户指定目录）。
+- 输出文件完整路径（以脚本输出的 `Written: <完整路径>` 为准，默认位于**桌面**；显式 `--out-dir` 时位于用户指定目录）。
 - 总共多少条路径、多少条空 history（如有，逐条列出，提示需人工补）。
 - 抽查结论（哪个路径取了 NIPTV 号、哪个是兜底最新 message）。
 
@@ -126,7 +129,10 @@ node "...\generate_code_confirm.cjs" --out-dir "<用户指定的目录>" < "<临
   汇报时单独列出提醒人工补。
 - **非 git 项目**（检测到工程标记但没有 git）：表格能正常生成，但所有路径的"需求编号/模块版本管控人"
   都为空（没有 git history 可查），生成后明确告诉用户这两个字段需要人工填写。
-- **检测不到项目根目录**：脚本输出 `NO_PROJECT_ROOT`，必须询问用户保存位置并用 `--out-dir` 重跑。
+- **默认输出到桌面**：Excel 默认生成在用户桌面（Windows 兼容 OneDrive 重定向），方便取用；
+  如需保存到别处，用 `--out-dir` 指定。
+- **检测不到桌面目录**（且未指定 `--out-dir` / `CODE_CONFIRM_OUT_DIR`）：脚本输出 `NO_PROJECT_ROOT`，
+  必须询问用户保存位置并用 `--out-dir` 重跑。
 - **输出文件被 Excel 占用**：脚本会自动写 `_v2`/`_v3` 等后缀，汇报时告知用户实际文件名即可。
 - **无 Node 环境**：提示用户安装 Node 后重跑（脚本是纯 Node，不依赖任何第三方包）。
 - **路径含空格**：必须通过 stdin 文件传入（每行一条），不要用命令行参数传含空格路径。
