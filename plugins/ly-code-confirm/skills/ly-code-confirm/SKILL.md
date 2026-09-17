@@ -1,13 +1,12 @@
 ---
 name: ly-code-confirm
-description: >
-  仅通过 /ly-code-confirm 指令手动调用。
+description:
   根据用户提供的组件/文件路径列表，逐个查询该文件在当前分支的 git history，
   生成《代码确认管控》Excel 表格（用于组件版本管控 / 跨版本代码归属与需求编号确认）。
   表格列为：路径、是否属于当前版本、代码对应的需求编号或磐石问题号或TB号(或增加改动原因）、
   项目经理、模块版本管控人、模块测试组长/测试主担、差异确认人、确认日期。
   调用方式：指令 + 用户提供路径列表（可整段粘贴、命令行参数、或指向一个路径文件）。
-  DO NOT auto-trigger on any user message content — only invoke when user explicitly types /ly-code-confirm.
+disable-model-invocation: true
 ---
 
 # 代码确认管控表生成

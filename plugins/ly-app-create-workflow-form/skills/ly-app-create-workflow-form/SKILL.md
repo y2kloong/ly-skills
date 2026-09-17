@@ -1,10 +1,7 @@
 ---
 name: ly-app-create-workflow-form
-description: >
-  仅通过 /ly-app-create-workflow-form 指令手动调用。
-  生成新的工作流审批详情页面代码（单文件直集成模式，业务模块 workflow 目录下直接集成 wfCompositionExapnd），并指导注册到工作流分发容器 container.vue。
-  使用场景：用户明确要求新建/创建/新增/生成/开发一个工作流表单、审批详情页、审批页面、流程表单页面。
-  DO NOT auto-trigger on any user message content — only invoke when user explicitly types /ly-app-create-workflow-form.
+description: 快速生成APP审批流程模版骨架.
+disable-model-invocation: true
 ---
 
 # 工作流审批详情页面生成器

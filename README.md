@@ -46,6 +46,11 @@ Claude Code 之外的工具**不支持 `/plugin marketplace` 命令**，需手�
 仓库内技能文件位于 `plugins/<插件名>/skills/<技能名>/SKILL.md`，对应四个技能：
 `ly-branch-merge-check`、`ly-tb-commit-summary`、`ly-app-create-workflow-form`、`ly-code-confirm`。
 
+> **注意**：四个技能均以 `disable-model-invocation: true` 声明为「仅手动调用」，该字段是
+> **Claude Code 专属**的 frontmatter 配置。Codex / DSH 不识别它，技能描述中也不再含有
+> 「禁止自动触发」的文字提示，因此在这两个工具下，技能可能被模型自动触发。
+> 若需要严格的手动控制，建议只链接当前确实要用的技能目录，而不是一次全量复制。
+
 ### Codex（OpenAI Codex CLI）
 
 将技能目录复制到 `~/.codex/skills/`（个人全局）或项目目录 `.codex/skills/`（仅该项目），重启 Codex 后自动加载。
@@ -77,9 +82,11 @@ Copy-Item -Recurse .\plugins\*\skills\* "$HOME\.dsh\skills\"
 
 ## 技能使用方式
 
+四个技能均为**仅手动调用**（Claude Code 下通过 `disable-model-invocation: true` 关闭自动触发），需显式输入 `/技能名`：
+
 - `/ly-branch-merge-check <分支名>` — 分析公共组代码差异并生成 cherry-pick 命令
 - `/ly-tb-commit-summary <commit-id>` — 分析提交并输出三部分总结（支持多个 commit ID）
-- `ly-app-create-workflow-form` — 手动触发，生成新的工作流审批详情页面（业务 workflow 页面 + container 注册）
+- `/ly-app-create-workflow-form <需求描述>` — 生成新的工作流审批详情页面（业务 workflow 页面 + container 注册）
 - `/ly-code-confirm <路径列表>` — 查询 git history 生成《代码确认管控》Excel 表格
 
 ## 仓库结构

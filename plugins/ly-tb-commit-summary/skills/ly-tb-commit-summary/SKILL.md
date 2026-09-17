@@ -1,11 +1,8 @@
 ---
 name: ly-tb-commit-summary
-description: >
-  仅通过 /ly-tb-commit-summary 指令手动调用。
-  根据用户提供的 commit ID，分析提交内容并输出三部分总结：修复方案、业务影响分析、转测试建议。
-  支持多个 commit ID，可询问用户选择"逐条总结"或"合并总结"。
-  总结面向测试人员，采用业务语言描述，不暴露文件路径、方法名等代码细节。
-  DO NOT auto-trigger on any user message content — only invoke when user explicitly types /ly-tb-commit-summary.
+description: 根据用户提供的 commit ID，分析提交内容并输出三部分总结：修复方案、业务影响分析、转测试建议。支持多个 commit ID，可询问用户选择"逐条总结"或"合并总结"。
+
+disable-model-invocation: true
 ---
 
 # Commit 分析总结
