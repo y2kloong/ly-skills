@@ -1,0 +1,64 @@
+{
+  "skill_name": "ly-pc-create-workflow-form",
+  "evals": [
+    {
+      "id": 0,
+      "name": "vehicle-inspection-report-full-info",
+      "prompt": "/ly-pc-create-workflow-form 新建一个工作流表单，formKey 是 vehicleInspectionReport，组件目录名用 VehicleInspectionReport，放 src/views/VeCenter/views/workflow/ 下，做车辆验收报告审批。字段有：reportNo 报告编号(string)、vin 车架号(string)、inspectDate 验收日期(datetime)、inspectResult 验收结论(string)、remark 备注(string)。接口路径还没定，先留空。",
+      "expected_output": "生成 2 个文件：workspace/views/workflow/form/vehicleInspectionReport/index.js 与 src/views/VeCenter/views/workflow/VehicleInspectionReport/index.vue。不生成 api、路由、发起入口文件。",
+      "files": [],
+      "assertions": [
+        "配置入口位于 workspace/views/workflow/form/vehicleInspectionReport/index.js（目录名与 formKey 一致，且只有一层）",
+        "配置入口导出 formAsyncComponent / formInputList / formCompList 三个具名常量，名字完全正确",
+        "formAsyncComponent 的 import 路径指向 @/views/VeCenter/views/workflow/VehicleInspectionReport/index.vue",
+        "formCompList 使用 compType 字段名（不是 type）",
+        "formInputList 与 formCompList 的 key 一一对齐，且 5 个字段齐全",
+        "formInputList 中 inspectDate 的 type 为 datetime，其余为 string",
+        "组件使用 Options API export default（不是 <script setup>），mixins 含 wfOptionExpand",
+        "组件实现了全部 6 个钩子：onWorkflowRuntimeContextAware / loadData / setReadOnly / validData / getData / submitData",
+        "validData / getData / submitData 三个方法体内均调用了 callback",
+        "onWorkflowRuntimeContextAware 用单对象解构（{ openType, workflowRuntimeContext }），不是两个位置参数",
+        "loadData 对 data 做归一化（不假定它是 JSON 字符串、能处理 null）",
+        "没有生成范围外的文件（如 api 文件、路由配置、发起入口页）"
+      ]
+    },
+    {
+      "id": 1,
+      "name": "vague-request-needs-confirmation",
+      "prompt": "/ly-pc-create-workflow-form 帮我新建一个流程表单，做门店巡检审核的，字段你看着来",
+      "expected_output": "不应把 formKey 当成随便取的名字。应提示 formKey 是前后端绑定键、必须与后端流程节点配置一致，并列出其余待确认信息（目录名/落位路径、字段、接口）。生成物结构仍正确。",
+      "files": [],
+      "assertions": [
+        "索取或提示需要 formKey（说明它是后端流程节点配置的绑定键）",
+        "索取或提示需要组件目录名 / 落位路径",
+        "索取或提示需要字段清单，而不是自行编造",
+        "生成的字段明确标注为「按语义假设、需用户核对」而非既定事实",
+        "组件文件内留有 TODO / 待补标注",
+        "若生成了文件，结构仍然正确（配置入口路径 + 三个导出名 + Options API + wfOptionExpand）",
+        "回复结尾把待确认信息集中列出，便于用户一次性补齐"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "boundary-and-gotcha-check",
+      "prompt": "/ly-pc-create-workflow-form 新增流程表单，formKey = storeInventoryCheck，组件名 StoreInventoryCheck，放在 src/views/VeCenter/views/workflow/。门店盘点审核用。字段：checkNo 盘点单号 string 必填、storeCode 门店编码 string 必填、checkDate 盘点日期 datetime、diffQty 差异数量 int、attachFile 附件 string。详情接口 /ly/busicen/nevdc/xxx/storeCheckQuery，提交接口 /ly/busicen/nevdc/xxx/storeCheckSubmit。做完告诉我有哪些地方需要我后面自己补。",
+      "expected_output": "生成 2 个文件；formInputList 的 type 正确；formCompList 用 compType；必填项标注；三个钩子路径都调用 callback 含 catch；结尾给出待补 TODO 清单。",
+      "files": [],
+      "assertions": [
+        "配置入口目录名与 formKey 一致（一层）",
+        "配置入口导出 formAsyncComponent / formInputList / formCompList 三个具名常量",
+        "formCompList 使用 compType 字段名（不是 type）",
+        "formInputList 中 checkDate 为 datetime、diffQty 为 int，其余为 string",
+        "checkNo 与 storeCode 标为必填",
+        "组件使用 Options API + wfOptionExpand",
+        "组件实现了全部 6 个钩子",
+        "validData / getData / submitData 均调用了 callback，且 catch 分支也调用",
+        "onWorkflowRuntimeContextAware 用单对象解构（{ openType, workflowRuntimeContext }），不是两个位置参数",
+        "loadData 对 data 做归一化（不假定它是 JSON 字符串、能处理 null）",
+        "详情/提交接口出现或明确标注了填充位置",
+        "回复结尾给出待用户补充的 TODO 清单",
+        "没有生成范围外的文件"
+      ]
+    }
+  ]
+}

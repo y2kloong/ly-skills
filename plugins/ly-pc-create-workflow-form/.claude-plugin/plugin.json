@@ -1,0 +1,14 @@
+{
+  "name": "ly-pc-create-workflow-form",
+  "description": "PC 端工作流表单生成技能：基于 src/modules/workflow 运行时框架，一次性生成配置入口 index.js 与 Options API 表单组件骨架",
+  "version": "1.0.0",
+  "author": {
+    "name": "y2kloong",
+    "url": "https://gitee.com/y2kloong"
+  },
+  "repository": "https://gitee.com/y2kloong/ly-skills.git",
+  "main": {
+    "type": "skills",
+    "skills": ["skills/ly-pc-create-workflow-form"]
+  }
+}

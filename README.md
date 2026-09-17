@@ -9,6 +9,7 @@
 | `ly-branch-merge-check` | 分析两个分支间公共组代码差异，生成 cherry-pick 命令，用于同步公共组代码 |
 | `ly-tb-commit-summary` | 根据 commit ID 输出修复方案 / 业务影响分析 / 转测试建议 |
 | `ly-app-create-workflow-form` | 生成新的工作流审批详情页面代码（单文件直集成模式）：业务 workflow 页面和 container 注册 |
+| `ly-pc-create-workflow-form` | 生成 PC 端工作流审批表单骨架：配置入口 index.js 与 Options API 表单组件 |
 | `ly-code-confirm` | 根据组件/文件路径列表查询 git history，生成《代码确认管控》Excel 表格 |
 
 ## 安装
@@ -22,6 +23,7 @@
 /plugin install ly-branch-merge-check@ly-skills
 /plugin install ly-tb-commit-summary@ly-skills
 /plugin install ly-app-create-workflow-form@ly-skills
+/plugin install ly-pc-create-workflow-form@ly-skills
 /plugin install ly-code-confirm@ly-skills
 ```
 
@@ -43,10 +45,11 @@
 ## 其他工具安装（Codex / DeepSeek Harness）
 
 Claude Code 之外的工具**不支持 `/plugin marketplace` 命令**，需手动放置技能目录。
-仓库内技能文件位于 `plugins/<插件名>/skills/<技能名>/SKILL.md`，对应四个技能：
-`ly-branch-merge-check`、`ly-tb-commit-summary`、`ly-app-create-workflow-form`、`ly-code-confirm`。
+仓库内技能文件位于 `plugins/<插件名>/skills/<技能名>/SKILL.md`，对应五个技能：
+`ly-branch-merge-check`、`ly-tb-commit-summary`、`ly-app-create-workflow-form`、
+`ly-pc-create-workflow-form`、`ly-code-confirm`。
 
-> **注意**：四个技能均以 `disable-model-invocation: true` 声明为「仅手动调用」，该字段是
+> **注意**：五个技能均以 `disable-model-invocation: true` 声明为「仅手动调用」，该字段是
 > **Claude Code 专属**的 frontmatter 配置。Codex / DSH 不识别它，技能描述中也不再含有
 > 「禁止自动触发」的文字提示，因此在这两个工具下，技能可能被模型自动触发。
 > 若需要严格的手动控制，建议只链接当前确实要用的技能目录，而不是一次全量复制。
@@ -82,11 +85,12 @@ Copy-Item -Recurse .\plugins\*\skills\* "$HOME\.dsh\skills\"
 
 ## 技能使用方式
 
-四个技能均为**仅手动调用**（Claude Code 下通过 `disable-model-invocation: true` 关闭自动触发），需显式输入 `/技能名`：
+五个技能均为**仅手动调用**（Claude Code 下通过 `disable-model-invocation: true` 关闭自动触发），需显式输入 `/技能名`：
 
 - `/ly-branch-merge-check <分支名>` — 分析公共组代码差异并生成 cherry-pick 命令
 - `/ly-tb-commit-summary <commit-id>` — 分析提交并输出三部分总结（支持多个 commit ID）
 - `/ly-app-create-workflow-form <需求描述>` — 生成新的工作流审批详情页面（业务 workflow 页面 + container 注册）
+- `/ly-pc-create-workflow-form <formKey 等>` — 生成 PC 端工作流审批表单骨架（配置入口 + Options API 组件）
 - `/ly-code-confirm <路径列表>` — 查询 git history 生成《代码确认管控》Excel 表格
 
 ## 仓库结构
