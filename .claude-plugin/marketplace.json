@@ -7,27 +7,27 @@
   "plugins": [
     {
       "name": "ly-branch-merge-check",
-      "source": "https://gitee.com/y2kloong/ly-skills.git",
+      "source": "./plugins/ly-branch-merge-check",
       "description": "分析两个分支之间的公共组代码差异，生成 cherry-pick 命令，用于从其他版本分支同步公共组代码"
     },
     {
       "name": "ly-tb-commit-summary",
-      "source": "https://gitee.com/y2kloong/ly-skills.git",
+      "source": "./plugins/ly-tb-commit-summary",
       "description": "根据 commit ID 输出三部分总结：修复方案、业务影响分析、转测试建议"
     },
     {
       "name": "ly-app-create-workflow-form",
-      "source": "https://gitee.com/y2kloong/ly-skills.git",
+      "source": "./plugins/ly-app-create-workflow-form",
       "description": "生成新的工作流审批详情页面代码（单文件直集成模式）：业务 workflow 页面与 container 注册"
     },
     {
       "name": "ly-pc-create-workflow-form",
-      "source": "https://gitee.com/y2kloong/ly-skills.git",
+      "source": "./plugins/ly-pc-create-workflow-form",
       "description": "生成 PC 端工作流审批表单骨架（src/modules/workflow 运行时框架）：配置入口 index.js 与 Options API 表单组件"
     },
     {
       "name": "ly-code-confirm",
-      "source": "https://gitee.com/y2kloong/ly-skills.git",
+      "source": "./plugins/ly-code-confirm",
       "description": "根据组件/文件路径列表查询 git history，生成《代码确认管控》Excel 表格（组件版本管控 / 需求编号确认）"
     }
   ]
