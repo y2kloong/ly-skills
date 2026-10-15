@@ -5,14 +5,21 @@
       "id": 1,
       "name": "basic-paths",
       "prompt": "用 /ly-code-confirm 生成代码确认管控表，路径如下（每行一条）：\nsrc/components/fastDesigner/fastForm.vue\nsrc/components/lowcode/LyBusicenGtm/GTM/Headquarters/CommodityManage/vehicleInformationManagement/mesConfig.vue\nsrc/views/bcapnext/lcs/libs/commonMixins.js\nsrc/views/Login/NormalLogin/index.vue",
-      "expected_output": "Excel 文件，4 行数据 + 表头。fastForm → NIPTV-148642/彭君；mesConfig → NIPTV-139289、NIPTV-139290/刘湖水；commonMixins → 兜底最新message/刘泽明；NormalLogin → NIPTV-157446/彭君。项目经理詹朝生，确认日期2026/08/25",
+      "expected_output": "Excel 文件，4 行数据 + 表头。生成前先跑 `--list-managers` 得到模块版本管控人清单（彭君、刘湖水、刘泽明），并逐个询问其对应的模块测试组长/测试主担；用户给出答案则用 `--test-lead-map`/`--test-lead` 回填该列，用户未给或回答跳过的管控人该列留空（不得编造）。数据：fastForm → NIPTV-148642/彭君；mesConfig → NIPTV-139289、NIPTV-139290/刘湖水；commonMixins → 兜底最新message/刘泽明；NormalLogin → NIPTV-157446/彭君。项目经理詹朝生，差异确认人同模块版本管控人，确认日期2026/08/25",
       "files": []
     },
     {
       "id": 2,
       "name": "edge-paths",
       "prompt": "用 /ly-code-confirm 生成代码确认管控表，包含以下路径：\nsrc/components/ElementSecondary/ElOption.vue\nsrc/views/does/not/exist.vue\nworkspace/views/demo.vue",
-      "expected_output": "Excel 文件，3 行数据 + 表头。ElOption → 兜底最新message「【框架升级】【715】 fastForm下拉框选项支持使用插槽自定义」/邓佩云；不存在路径 → 需求编号空、管控人空；demo.vue → NIPTV-152324/何怿铭。",
+      "expected_output": "Excel 文件，3 行数据 + 表头。生成前先跑 `--list-managers` 得到模块版本管控人清单（邓佩云、何怿铭，不存在路径的管控人为空、不出现在清单里），并询问其对应的模块测试组长/测试主担。数据：ElOption → 兜底最新message「【框架升级】【715】 fastForm下拉框选项支持使用插槽自定义」/邓佩云；不存在路径 → 需求编号空、管控人空、模块测试组长/测试主担也留空；demo.vue → NIPTV-152324/何怿铭。",
+      "files": []
+    },
+    {
+      "id": 3,
+      "name": "user-provided-test-lead",
+      "prompt": "用 /ly-code-confirm 生成代码确认管控表，路径如下（每行一条）：\nsrc/components/fastDesigner/fastForm.vue\nsrc/views/bcapnext/lcs/libs/commonMixins.js\n模块版本管控人对应的模块测试组长/测试主担：彭君 对应 张三，刘泽明 对应 李四",
+      "expected_output": "Excel 文件，2 行数据 + 表头。用户已在指令里给出管控人→测试组长/测试主担 映射，因此无需再重复追问（用 `--test-lead \"彭君=张三\" --test-lead \"刘泽明=李四\"` 或映射文件传入）。模块测试组长/测试主担列被正确回填：fastForm → NIPTV-148642/彭君/张三；commonMixins → 兜底最新message/刘泽明/李四。",
       "files": []
     }
   ]

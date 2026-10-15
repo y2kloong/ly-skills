@@ -9,6 +9,13 @@
  *   2) node generate_code_confirm.cjs < 路径列表.txt             路径从 stdin 传入，每行一条
  *   3) node generate_code_confirm.cjs --out-dir <目录> < 路径列表.txt
  *                                                             显式指定输出目录（跨项目/无工程根目录时用）
+ *   4) node generate_code_confirm.cjs --list-managers < 路径列表.txt
+ *                                                             只列出会出现的"模块版本管控人"清单，不生成表格
+ *   5) node generate_code_confirm.cjs --test-lead-map <映射文件> < 路径列表.txt
+ *                                                             用映射文件填充"模块测试组长/测试主担"列
+ *                                                             （文件每行一条 "模块版本管控人=模块测试组长/测试主担"）
+ *   6) node generate_code_confirm.cjs --test-lead "彭君=张三" --test-lead "邬凡=李四" < 路径列表.txt
+ *                                                             命令行直接给出映射（可与 --test-lead-map 叠加）
  *
  * 输出位置解析顺序：
  *   1. --out-dir 参数（或环境变量 CODE_CONFIRM_OUT_DIR）——显式指定，优先级最高
@@ -22,8 +29,10 @@
  *   - 每个路径取前 N 条 git history（默认 3 条）
  *   - 前 N 条中有匹配 ticketPattern 的 commit，取最新那条，只提取编号（多条用顿号连接）
  *   - 前 N 条没有，取最新一次提交的完整 message
- *   - 提交人按 authorMap 规范化（默认 ly-pengjun -> 彭君）
+ *   - 提交人按 authorMap 规范化（默认 ly-pengjun -> 彭君、ly-wufan2 -> 邬凡）
  *   - 项目经理默认 defaultPM；确认日期为运行当天 yyyy/mm/dd
+ *   - "模块测试组长/测试主担"由调用方通过 --test-lead-map / --test-lead 提供
+ *     （键为"模块版本管控人"，即规范化后的提交人展示名）；未提供的管控人该列留空
  */
 const { execSync } = require('child_process');
 const fs = require('fs');
@@ -35,11 +44,14 @@ const CONFIG = {
   // 需求/TB/磐石问题号匹配规则。通用版默认仍匹配 NIPTV-xxxx；其它系统改成正则即可
   ticketPattern: /NIPTV-\d+/i,
   // 提交人名称规范化映射：git 作者名 -> 展示名（可增删）
-  authorMap: { 'ly-pengjun': '彭君' },
+  authorMap: { 'ly-pengjun': '彭君', 'ly-wufan2': '邬凡' },
   // 项目经理默认值
   defaultPM: '詹朝生',
   // 模块测试组长/测试主担默认值（默认空）
   defaultTestLead: '',
+  // 模块测试组长/测试主担预设映射：键为"模块版本管控人"（规范化后的展示名），值为测试组长/测试主担。
+  // 一般留空，由运行时 --test-lead-map / --test-lead 提供；此处只放长期固定的默认映射。
+  testLeadMap: {},
   // "是否属于当前版本"默认值
   defaultInCurrentVersion: '是',
   // 每个路径取的 git history 条数
@@ -265,16 +277,63 @@ function buildXlsx(sheetName, rows, colWidths, boldHeaderRow) {
 
 // ====================== 工具函数 ======================
 
-// 解析 --out-dir 参数，其余作为路径
+// 解析命令行参数：--out-dir / --test-lead-map / --test-lead / --list-managers，其余作为路径
 function parseArgs(argv) {
   let outDir = null;
+  let testLeadMapFile = null;
+  let listManagers = false;
+  const testLeadEntries = [];
   const rest = [];
   for (let i = 0; i < argv.length; i++) {
-    if (argv[i] === '--out-dir') outDir = argv[++i];
-    else if (argv[i].startsWith('--out-dir=')) outDir = argv[i].slice('--out-dir='.length);
-    else rest.push(argv[i]);
+    const arg = argv[i];
+    if (arg === '--out-dir') outDir = argv[++i];
+    else if (arg.startsWith('--out-dir=')) outDir = arg.slice('--out-dir='.length);
+    else if (arg === '--test-lead-map') testLeadMapFile = argv[++i];
+    else if (arg.startsWith('--test-lead-map=')) testLeadMapFile = arg.slice('--test-lead-map='.length);
+    else if (arg === '--test-lead') testLeadEntries.push(argv[++i]);
+    else if (arg.startsWith('--test-lead=')) testLeadEntries.push(arg.slice('--test-lead='.length));
+    else if (arg === '--list-managers') listManagers = true;
+    else rest.push(arg);
   }
-  return { outDir, paths: rest };
+  return { outDir, testLeadMapFile, testLeadEntries, listManagers, paths: rest };
+}
+
+// 解析 "模块版本管控人=模块测试组长/测试主担" 条目（分隔符支持 = 、：、:，取第一个出现的）
+function parseTestLeadEntries(entries) {
+  const map = {};
+  for (const entry of entries || []) {
+    if (!entry) continue;
+    const text = String(entry).trim();
+    if (!text) continue;
+    let separatorIndex = -1;
+    for (const separator of ['=', '：', ':']) {
+      const index = text.indexOf(separator);
+      if (index > 0) { separatorIndex = index; break; }
+    }
+    if (separatorIndex <= 0) continue;
+    const manager = text.slice(0, separatorIndex).trim();
+    const testLead = text.slice(separatorIndex + 1).trim();
+    if (manager) map[manager] = testLead;
+  }
+  return map;
+}
+
+// 读取 --test-lead-map 指定的映射文件（每行一条 "模块版本管控人=模块测试组长/测试主担"，# 开头为注释）
+function readTestLeadMapFile(filePath) {
+  if (!filePath) return {};
+  const content = fs.readFileSync(filePath, 'utf8');
+  const lines = content.split(/\r?\n/).map((s) => s.trim()).filter((s) => s && !s.startsWith('#'));
+  return parseTestLeadEntries(lines);
+}
+
+// 合并测试组长/测试主担映射：CONFIG 预设 -> 映射文件 -> 命令行参数（后者覆盖前者）
+function resolveTestLeadMap(testLeadMapFile, testLeadEntries) {
+  return Object.assign(
+    {},
+    CONFIG.testLeadMap,
+    readTestLeadMapFile(testLeadMapFile),
+    parseTestLeadEntries(testLeadEntries)
+  );
 }
 
 // 输出目录解析：--out-dir/环境变量 -> git 根 -> 最近的工程标记目录 -> null
@@ -367,9 +426,32 @@ function pickRequirement(history) {
   return { value: history[0].message, author: normalizeAuthor(history[0].author) };
 }
 
+// 逐路径分析：查 history、定需求编号与模块版本管控人
+function analyzeFiles(files, gitCwd) {
+  return files.map((file) => {
+    const history = getHistory(file, gitCwd);
+    return { file, hasHistory: history.length > 0, chosen: pickRequirement(history) };
+  });
+}
+
+// 按出现顺序去重收集"模块版本管控人"（空值不计）
+function collectManagers(analyses) {
+  const seen = new Set();
+  const managers = [];
+  for (const a of analyses) {
+    const manager = a.chosen.author;
+    if (manager && !seen.has(manager)) {
+      seen.add(manager);
+      managers.push(manager);
+    }
+  }
+  return managers;
+}
+
 // ====================== 主流程 ======================
 function main() {
-  const { outDir: outDirArg, paths: argPaths } = parseArgs(process.argv.slice(2));
+  const { outDir: outDirArg, testLeadMapFile, testLeadEntries, listManagers, paths: argPaths } =
+    parseArgs(process.argv.slice(2));
 
   // 收集路径：参数 -> stdin（每行一条）
   let FILES = argPaths;
@@ -386,6 +468,16 @@ function main() {
   const projectRoot = detectProjectRoot();
   const gitCwd = projectRoot || process.cwd();
 
+  const analyses = analyzeFiles(FILES, gitCwd);
+
+  // --list-managers：只输出"模块版本管控人"清单供调用方询问测试组长/测试主担，不生成表格
+  if (listManagers) {
+    const managers = collectManagers(analyses);
+    console.log(`Managers: ${JSON.stringify(managers)}`);
+    console.log(`ManagerCount: ${managers.length}`);
+    process.exit(0);
+  }
+
   // 输出目录解析：显式 --out-dir/env -> 桌面目录（默认）。git log 查询目录始终用 gitCwd，二者相互独立。
   let outDir = outDirArg || process.env.CODE_CONFIRM_OUT_DIR || detectDesktopDir();
   if (!outDir) {
@@ -400,25 +492,29 @@ function main() {
     process.exit(1);
   }
 
-  // 逐路径查 history、组行
+  // 逐路径组行
   const TODAY = new Date();
   const pad = (n) => String(n).padStart(2, '0');
   const DATE_STR = `${TODAY.getFullYear()}/${pad(TODAY.getMonth() + 1)}/${pad(TODAY.getDate())}`;
 
+  const testLeadMap = resolveTestLeadMap(testLeadMapFile, testLeadEntries);
+  const managers = collectManagers(analyses);
+  const managersWithoutTestLead = managers.filter((m) => !(m in testLeadMap));
+
   const rows = [[...CONFIG.headers]];
   let noHistory = 0;
-  for (const file of FILES) {
-    const history = getHistory(file, gitCwd);
-    if (!history.length) noHistory++;
-    const chosen = pickRequirement(history);
+  for (const a of analyses) {
+    if (!a.hasHistory) noHistory++;
+    const manager = a.chosen.author;
+    const testLead = manager in testLeadMap ? testLeadMap[manager] : CONFIG.defaultTestLead;
     rows.push([
-      file,
+      a.file,
       CONFIG.defaultInCurrentVersion,
-      chosen.value,
+      a.chosen.value,
       CONFIG.defaultPM,
-      chosen.author,
-      CONFIG.defaultTestLead,
-      chosen.author, // 差异确认人与模块版本管控人一致
+      manager,
+      testLead,
+      manager, // 差异确认人与模块版本管控人一致
       DATE_STR
     ]);
   }
@@ -451,6 +547,10 @@ function main() {
   }
 
   console.log(`Total: ${rows.length - 1}, with empty history: ${noHistory}`);
+  console.log(`Managers: ${JSON.stringify(managers)}`);
+  if (managersWithoutTestLead.length) {
+    console.log(`ManagersWithoutTestLead: ${managersWithoutTestLead.join('、')}`);
+  }
   console.log(`Written: ${outPath}`);
 }
 
