@@ -16,6 +16,9 @@
  *                                                             （文件每行一条 "模块版本管控人=模块测试组长/测试主担"）
  *   6) node generate_code_confirm.cjs --test-lead "彭君=张三" --test-lead "邬凡=李四" < 路径列表.txt
  *                                                             命令行直接给出映射（可与 --test-lead-map 叠加）
+ *   7) node generate_code_confirm.cjs --pm "张三" < 路径列表.txt
+ *                                                             指定"项目经理"列的值（不传则整列留空；
+ *                                                             默认值 CONFIG.defaultPM 为空字符串）
  *
  * 输出位置解析顺序：
  *   1. --out-dir 参数（或环境变量 CODE_CONFIRM_OUT_DIR）——显式指定，优先级最高
@@ -27,10 +30,14 @@
  *
  * 规则（与《代码确认管控》表格口径一致，均在下方 CONFIG 中可配置）：
  *   - 每个路径取前 N 条 git history（默认 3 条）
- *   - 前 N 条中有匹配 ticketPattern 的 commit，取最新那条，只提取编号（多条用顿号连接）
- *   - 前 N 条没有，取最新一次提交的完整 message
+ *   - 前 N 条中有匹配 ticketPattern 的 commit，取最新那条，只提取编号（多条用顿号连接）；
+ *     但若该 commit 与最新一次提交的时间间隔超过 ticketStaleDays（默认 14 天），视为已过期，
+ *     改取最新一次提交的完整 message
+ *   - 前 N 条没有（或命中的 commit 已过期），取最新一次提交的完整 message
  *   - 提交人按 authorMap 规范化（默认 ly-pengjun -> 彭君、ly-wufan2 -> 邬凡）
- *   - 项目经理默认 defaultPM；确认日期为运行当天 yyyy/mm/dd
+ *   - 项目经理由调用方通过 --pm 提供（交互式询问用户后传入）；未询问/未传时该列留空
+ *     （defaultPM 默认为空字符串，不回退任何预设姓名）
+ *   - 确认日期为运行当天 yyyy/mm/dd；文件名带时分秒（<fileBase>_yyyyMMdd_HHmmss.xlsx）
  *   - "模块测试组长/测试主担"由调用方通过 --test-lead-map / --test-lead 提供
  *     （键为"模块版本管控人"，即规范化后的提交人展示名）；未提供的管控人该列留空
  */
@@ -45,8 +52,10 @@ const CONFIG = {
   ticketPattern: /NIPTV-\d+/i,
   // 提交人名称规范化映射：git 作者名 -> 展示名（可增删）
   authorMap: { 'ly-pengjun': '彭君', 'ly-wufan2': '邬凡' },
-  // 项目经理默认值
-  defaultPM: '詹朝生',
+  // 项目经理默认值：默认空。正常情况下由调用方先用 AskUserQuestion 问用户，
+  // 再用 --pm 传入；未询问/未传时该列留空（不回退任何预设姓名）。
+  // 如需跨项目固定默认值，可在此填写，但默认必须保持空字符串。
+  defaultPM: '',
   // 模块测试组长/测试主担默认值（默认空）
   defaultTestLead: '',
   // 模块测试组长/测试主担预设映射：键为"模块版本管控人"（规范化后的展示名），值为测试组长/测试主担。
@@ -56,7 +65,10 @@ const CONFIG = {
   defaultInCurrentVersion: '是',
   // 每个路径取的 git history 条数
   historyLimit: 3,
-  // 输出文件名前缀（最终文件：<fileBase>_yyyyMMdd.xlsx）
+  // 命中需求编号的 commit 与最新一次提交允许的最大时间间隔（天）：
+  // 超过该天数视为"这条带编码的 log 已过期"，改为取最新一次提交的完整 message
+  ticketStaleDays: 14,
+  // 输出文件名前缀（最终文件：<fileBase>_yyyyMMdd_HHmmss.xlsx）
   fileBase: '代码确认管控',
   // 表头列
   headers: [
@@ -277,9 +289,10 @@ function buildXlsx(sheetName, rows, colWidths, boldHeaderRow) {
 
 // ====================== 工具函数 ======================
 
-// 解析命令行参数：--out-dir / --test-lead-map / --test-lead / --list-managers，其余作为路径
+// 解析命令行参数：--out-dir / --pm / --test-lead-map / --test-lead / --list-managers，其余作为路径
 function parseArgs(argv) {
   let outDir = null;
+  let pm = null;
   let testLeadMapFile = null;
   let listManagers = false;
   const testLeadEntries = [];
@@ -288,6 +301,8 @@ function parseArgs(argv) {
     const arg = argv[i];
     if (arg === '--out-dir') outDir = argv[++i];
     else if (arg.startsWith('--out-dir=')) outDir = arg.slice('--out-dir='.length);
+    else if (arg === '--pm') pm = argv[++i];
+    else if (arg.startsWith('--pm=')) pm = arg.slice('--pm='.length);
     else if (arg === '--test-lead-map') testLeadMapFile = argv[++i];
     else if (arg.startsWith('--test-lead-map=')) testLeadMapFile = arg.slice('--test-lead-map='.length);
     else if (arg === '--test-lead') testLeadEntries.push(argv[++i]);
@@ -295,7 +310,7 @@ function parseArgs(argv) {
     else if (arg === '--list-managers') listManagers = true;
     else rest.push(arg);
   }
-  return { outDir, testLeadMapFile, testLeadEntries, listManagers, paths: rest };
+  return { outDir, pm, testLeadMapFile, testLeadEntries, listManagers, paths: rest };
 }
 
 // 解析 "模块版本管控人=模块测试组长/测试主担" 条目（分隔符支持 = 、：、:，取第一个出现的）
@@ -391,10 +406,11 @@ function normalizeAuthor(name) {
 }
 
 // 取前 N 条 history（N=CONFIG.historyLimit）；无 git 或路径不存在时返回 []
+// timestamp 为提交时间（秒级 Unix 时间戳），用于判断带编码的 commit 是否已过期
 function getHistory(file, cwd) {
   try {
     const out = execSync(
-      `git log -${CONFIG.historyLimit} --format="%H|%an|%ae|%s" -- "${file}"`,
+      `git log -${CONFIG.historyLimit} --format="%H|%an|%ae|%at|%s" -- "${file}"`,
       { cwd, maxBuffer: 10 * 1024 * 1024, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }
     ).trim();
     if (!out) return [];
@@ -407,23 +423,35 @@ function getHistory(file, cwd) {
       const rest2 = rest.slice(i2 + 1);
       const i3 = rest2.indexOf('|');
       const email = rest2.slice(0, i3);
-      const message = rest2.slice(i3 + 1);
-      return { hash, author, email, message };
+      const rest3 = rest2.slice(i3 + 1);
+      const i4 = rest3.indexOf('|');
+      const timestamp = Number(rest3.slice(0, i4)) || 0;
+      const message = rest3.slice(i4 + 1);
+      return { hash, author, email, timestamp, message };
     });
   } catch (e) {
     return [];
   }
 }
 
-// 需求编号规则：前 N 条有 ticketPattern 命中则取（最新那条）只提取编号（多条顿号连接）；否则取最新完整 message
+// 需求编号规则：
+//   1) 前 N 条中有 ticketPattern 命中，且该 commit 与最新一次提交的时间间隔不超过
+//      ticketStaleDays 天 → 取最新那条命中 commit，只提取编号（多条顿号连接）
+//   2) 没有命中，或命中的 commit 距最新提交超过 ticketStaleDays 天（视为过期）
+//      → 取最新一次提交的完整 message
+const MILLIS_PER_DAY = 24 * 60 * 60 * 1000;
 function pickRequirement(history) {
   if (!history.length) return { value: '', author: '' };
+  const latest = history[0];
   const hit = history.find((c) => CONFIG.ticketPattern.test(c.message));
   if (hit) {
-    const codes = hit.message.match(/NIPTV-\d+/gi) || [];
-    return { value: codes.join('、'), author: normalizeAuthor(hit.author) };
+    const elapsedDays = ((latest.timestamp - hit.timestamp) * 1000) / MILLIS_PER_DAY;
+    if (elapsedDays <= CONFIG.ticketStaleDays) {
+      const codes = hit.message.match(/NIPTV-\d+/gi) || [];
+      return { value: codes.join('、'), author: normalizeAuthor(hit.author) };
+    }
   }
-  return { value: history[0].message, author: normalizeAuthor(history[0].author) };
+  return { value: latest.message, author: normalizeAuthor(latest.author) };
 }
 
 // 逐路径分析：查 history、定需求编号与模块版本管控人
@@ -450,7 +478,7 @@ function collectManagers(analyses) {
 
 // ====================== 主流程 ======================
 function main() {
-  const { outDir: outDirArg, testLeadMapFile, testLeadEntries, listManagers, paths: argPaths } =
+  const { outDir: outDirArg, pm: pmArg, testLeadMapFile, testLeadEntries, listManagers, paths: argPaths } =
     parseArgs(process.argv.slice(2));
 
   // 收集路径：参数 -> stdin（每行一条）
@@ -498,6 +526,8 @@ function main() {
   const DATE_STR = `${TODAY.getFullYear()}/${pad(TODAY.getMonth() + 1)}/${pad(TODAY.getDate())}`;
 
   const testLeadMap = resolveTestLeadMap(testLeadMapFile, testLeadEntries);
+  // 项目经理：用户通过 --pm 指定的值优先（允许显式空字符串留空），否则回退 CONFIG.defaultPM
+  const projectManager = pmArg !== null && pmArg !== undefined ? pmArg : CONFIG.defaultPM;
   const managers = collectManagers(analyses);
   const managersWithoutTestLead = managers.filter((m) => !(m in testLeadMap));
 
@@ -511,7 +541,7 @@ function main() {
       a.file,
       CONFIG.defaultInCurrentVersion,
       a.chosen.value,
-      CONFIG.defaultPM,
+      projectManager,
       manager,
       testLead,
       manager, // 差异确认人与模块版本管控人一致
@@ -519,11 +549,12 @@ function main() {
     ]);
   }
 
-  // 文件名 + EBUSY 重试
+  // 文件名（带时分秒，避免同一天多次生成互相覆盖）+ EBUSY 重试
   const y = TODAY.getFullYear();
   const m = pad(TODAY.getMonth() + 1);
   const d = pad(TODAY.getDate());
-  const baseName = `${CONFIG.fileBase}_${y}${m}${d}.xlsx`;
+  const hhmmss = `${pad(TODAY.getHours())}${pad(TODAY.getMinutes())}${pad(TODAY.getSeconds())}`;
+  const baseName = `${CONFIG.fileBase}_${y}${m}${d}_${hhmmss}.xlsx`;
 
   const xlsxBuf = buildXlsx(CONFIG.fileBase, rows, CONFIG.colWidths, true);
 
@@ -535,7 +566,7 @@ function main() {
       written = true;
     } catch (e) {
       if (e && e.code === 'EBUSY') {
-        outPath = path.join(outDir, `${CONFIG.fileBase}_${y}${m}${d}_v${i}.xlsx`);
+        outPath = path.join(outDir, `${CONFIG.fileBase}_${y}${m}${d}_${hhmmss}_v${i}.xlsx`);
       } else {
         throw e;
       }

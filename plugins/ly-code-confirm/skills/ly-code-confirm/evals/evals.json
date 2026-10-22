@@ -5,7 +5,7 @@
       "id": 1,
       "name": "basic-paths",
       "prompt": "用 /ly-code-confirm 生成代码确认管控表，路径如下（每行一条）：\nsrc/components/fastDesigner/fastForm.vue\nsrc/components/lowcode/LyBusicenGtm/GTM/Headquarters/CommodityManage/vehicleInformationManagement/mesConfig.vue\nsrc/views/bcapnext/lcs/libs/commonMixins.js\nsrc/views/Login/NormalLogin/index.vue",
-      "expected_output": "Excel 文件，4 行数据 + 表头。生成前先跑 `--list-managers` 得到模块版本管控人清单（彭君、刘湖水、刘泽明），并逐个询问其对应的模块测试组长/测试主担；用户给出答案则用 `--test-lead-map`/`--test-lead` 回填该列，用户未给或回答跳过的管控人该列留空（不得编造）。数据：fastForm → NIPTV-148642/彭君；mesConfig → NIPTV-139289、NIPTV-139290/刘湖水；commonMixins → 兜底最新message/刘泽明；NormalLogin → NIPTV-157446/彭君。项目经理詹朝生，差异确认人同模块版本管控人，确认日期2026/08/25",
+      "expected_output": "Excel 文件，4 行数据 + 表头。生成前先跑 `--list-managers` 得到模块版本管控人清单（彭君、刘湖水、刘泽明），先交互询问项目经理这一列填什么（用户给了就用 `--pm` 传入，选留空则 `--pm \"\"`，不得擅自填默认值），再逐个询问管控人对应的模块测试组长/测试主担；用户给出答案则用 `--test-lead-map`/`--test-lead` 回填该列，用户未给或回答跳过的管控人该列留空（不得编造）。文件名形如 代码确认管控_yyyyMMdd_HHmmss.xlsx（带时分秒）。数据：fastForm → NIPTV-148642/彭君；mesConfig → NIPTV-139289、NIPTV-139290/刘湖水；commonMixins → 兜底最新message/刘泽明；NormalLogin → NIPTV-157446/彭君。差异确认人同模块版本管控人，确认日期2026/08/25",
       "files": []
     },
     {
